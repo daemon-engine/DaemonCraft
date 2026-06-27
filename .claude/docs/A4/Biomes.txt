@@ -1,107 +1,0 @@
-BIOMES
-
-LOOKUP TABLES AND RANGES	
-Continentalness
-[?1.20, ?1.05)Deep Ocean[?1.05, ?0.455)Deep Ocean[?0.455, ?0.19)Ocean[?0.19, ?0.11)Coast[?0.11, 0.03)Near?inland[0.03, 0.30)Mid?inland[0.30, 1.00]Far?inlandErosion
-[?1.00, ?0.78)E0[?0.78, ?0.375)E1[?0.375, ?0.2225)E2[?0.2225, 0.05)E3[0.05, 0.45)E4[0.45, 0.55)E5[0.55, 1.00]E6
-
-Peaks and Valleys
-  [?1.00, ?0.85)Valleys  [?0.85, ?0.2)Low  [?0.2, 0.2)Mid  [0.2, 0.7)High  [0.7, 1.0]PeaksTemperature
-[?1.00, ?0.45)T0[?0.45, ?0.15)T1[?0.15, 0.20)T2[0.20, 0.55)T3[0.55, 1.00] T4Humidity
-[?1.00, ?0.35)H0[?0.35, ?0.10)H1[?0.10, 0.10)H2[0.10, 0.30)H3[0.30, 1.00] H4
-
-
-Inland Biomes
-PVECoastNear-inlandMid-inlandFar-inlandValleysE=0~1Beach biomesT<4: Middle biomes
-T=4: Badland biomesE=2~5E=6LowE=0~1E=2Middle biomesT<4: Middle biomes
-T=4: Badland biomesE=3E=4Middle biomesE=5E=6Middle biomesMidE=0T<4: Middle biomes
-T=4: Badland biomesE=1T<4: Middle biomes
-T=4: Badland biomesT<4: Middle biomes
-T=4: Badland biomesE=2Middle biomesT<4: Middle biomes
-T=4: Badland biomesMiddle biomesE=3Middle biomes
-T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5Beach biomesE=6Middle biomesHighE=0Middle biomesMiddle biomesT<=2: Snowy Peaks
-T>2: Stony PeaksE=1T<4: Middle biomes
-T=4: Badland biomesMiddle biomesE=2Middle biomesMiddle biomesMiddle biomesE=3T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5Middle biomesE=6Middle biomesPeaksE=0T<=2: Snowy Peaks
-T>2: Stony Peaks
-T<=2: Snowy Peaks
-T>2: Stony PeaksE=1T<4: Middle biomes
-T=4: Badland biomesE=2Middle biomesMiddle biomesMiddle biomesE=3T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5E=6Middle biomes
-
-Beach biomes 
-TBiomesT=0Snowy BeachT=1,2,3BeachT=4DesertBadland biomes 
-HBiomesH=0~2DesertH=3,4SavannaMiddle biomes 
-T/HT=0T=1T=2T=3T=4H=0Snowy PlainsPlainsSavannaDesertH=1H=2Snowy TaigaForestPlainsH=3TaigaForestJungleH=4TaigaJungleNon-inland Biomes
-TOceansDeep OceansT=0Frozen OceanFrozen OceanT=1~4OceanDeep Ocean
-GROUND AND TREES	
-General
-* Replace all air below sea level with water.
-* Replace stone at the bottom with lava and obsidian.
-* Randomly place ore through all the stone below a certain depth.
-* Unless otherwise specified, under the surface layer are 3 - 4 layers of dirt.
-* Tree probabilities should be based on biome, temperature, and humidity.
-* Trees should have small, medium, and large variants.
-* Trees will be generated with stamps, a collection of block coordinate offsets and block types.
-* ChatGPT can generate these stamps for you but they might need a little clean up.
-
-
-SURFACE AND BLOCK REPLACEMENT
-Ocean
-* Above sea level, replace surface with sand.
-* Below sea level, replace surface with dirt.
-Deep Ocean
-* No dirt layers.
-* Above sea level, replace surface with sand or snow, based on temperature.
-* At sea level, replace water with ice, based on temperature.
-* Below sea level, do nothing.
-Frozen Ocean
-* No dirt layers.
-* Above sea level, replace surface with snow.
-* At sea level, replace water with ice.
-* Below sea level, do nothing.
-Beach
-* Replace ground surface with sand.
-Snowy Beach
-* Replace ground surface with snow.
-Desert
-* Replace ground surface with sand.
-* Have several layers of sand before the dirt layers.
-* Place cactus trees.
-Savanna
-* Replace ground surface with yellow grass.
-* Place cactus and acacia trees.
-Plains
-* Replace ground surface with light grass.
-Snowy Plains
-* Replace ground surface with snow.
-* At sea level, replace water with ice.
-Forest
-* Replace ground surface with grass.
-* Place oak and birch trees.
-Jungle
-* Replace ground surface with dark grass.
-* Place jungle trees.
-Taiga
-* Replace ground surface with light grass.
-* Place spruce trees.
-Snowy Taiga
-* Replace ground surface with snow.
-* At sea level, replace water with ice.
-* Place spruce trees with snowy leaves.
-Stony Peaks
-* No dirt layers.
-Snowy Peaks
-* No dirt layers.
-* Replace ground surface with snow.
-* At sea level, replace water with ice.
-TREE PLACEMENT
-You need to check outside the chunk for trees, generating outside of the chunk by a distance large enough to cover any tree radius.
-There are three coordinates and associated indices for any block.
-* Noise coordinates and indices, used to access noise and biome maps, which are slightly larger than the chunk bounds.
-* Local block coordinates and indices, used to access blocks in a chunk.
-* Global block coordinates, used to generate noise maps and fields.
-Convert between noise and local block coordinates by adding or subtracting the border size. This means local coordinates could go out of bounds or be negative. When iterating over the noise maps or fields, convert noise coordinates to local block coordinates and don’t touch blocks that are out of the chunk bounds.
-
-

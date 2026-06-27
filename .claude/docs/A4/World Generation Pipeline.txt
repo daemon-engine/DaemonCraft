@@ -1,187 +1,0 @@
-WORLD GENERATION PIPELINE
-RESOURCES	
-Reinventing Minecraft world generation by Henrik Kniberg
-https://www.youtube.com/watch?v=ob3VwY4JyzE
-Minecraft Wiki - World Generation
-https://minecraft.wiki/w/World_generation#Terrain
-OVERVIEW	
-General
-1. Vanilla reference verticals, for remapping:
-a. minY = ?64
-b. minY = ?64
-c. maxY = +319 (height 384)
-d. sea level = 63
-2. Our verticals:
-a. minY = 0
-b. maxY = 127
-c. sea level = 80
-3. Rangemap between our [0, 127] and vanilla [?64, 319] when you reuse published Y?ranges (carvers etc.)
-Stages
-1. Biomes
-Biomes are determined and stored. No terrain is generated at this stage.
-2. Terrain
-The base terrain is shaped with 3D noise.
-3. Caves
-Cheese and spaghetti caves are added.
-4. Surface replacement
-The surface of the terrain is replaced with biome-dependent blocks.
-5. Features
-Features (trees) are placed and heightmaps are generated.
-6. Carvers
-Carvers carve certain parts of the terrain and replace solid blocks with air.
-
-
-
-DETAILS	
-BIOMES
-We will use less biomes than Minecraft and will remap theirs to this list:
-1. Ocean
-Oceans are vast expanses of water from sea level to the ocean floor, which is at a depth of roughly Y=45 for normal oceans and Y=30 for deep variants. The seafloor is fairly hilly, featuring multiple peaks and valleys, and is mostly covered by a one-block layer of gravel or sand, though some clay, dirt, gravel, and sand patches may generate near the peaks. Canyons can occasionally generate on the ocean floor, forming underwater trenches. The regular ocean variant mainly generates adjacent to land, while deep variants generate farther from land.
->> Replace surface with sand or dirt based on either Y or continentalness
-2. Deep Ocean
-The deep ocean variant generates at deeper waters, with the depth usually being around 30 blocks, twice as deep as shallower oceans. The ground is mainly covered with gravel.
->> Replace ground  surface with stone
-3. Frozen Ocean
-The frozen ocean has low temperature and often borders snowy beaches. They generate next to snowy plains, ice spikes, and snowy taigas usually, but they can also generate next to regular taiga biomes, resulting in incorrect and weird generation. Like the standard and cold oceans, it has a gravel seabed, though the water's surface is mostly frozen. Large icebergs made of snow blocks, packed ice and a bit of blue ice frequently generate on the surface.
->> Replace ground surface with stone
->> Chance to replace water surface with ice based on temperature
-4. Beach
-Beaches generate on the coast. Beaches do not always surround land biomes, allowing them to border the ocean. Beaches sometimes can also generate bordering rivers or be completely landlocked.
-Beaches are composed of mostly sand, with some gravel, dirt, and clay patches under the water, similarly to rivers. Like the sand in deserts, sandstone generates underneath it. Beach terrain is usually a smooth descent into the water, though it can vary in steepness and width.
->> Replace ground surface with sand
-5. Snowy Beach
-A snowy beach often generates around snowy plains, snowy taigas, or any of their variants. Snowy beaches are the same to regular beaches terrain-wise, being made mostly of sand, though their landscape is covered entirely in snow layers. The water surrounding snowy beaches freezes into ice due to the cold temperatures and these beaches often lead to frozen oceans.
->> Replace ground surface with snow
->> Replace water surface with ice
-6. Desert
-The surface is made entirely of sand, with sandstone generating underneath the sand. The terrain is usually flat, but with occasional hills.
-Cactus and dead bushes generate frequently across the landscape, with cacti sometimes featuring a cactus flower on top of them. 
-Deserts generate in areas with very high temperature and are more likely to generate in areas with high erosion values. They can generate in lower erosions but usually as a separation between a badlands biome and the oceans. Somewhat contrary to intuition, deserts can generate at any humidity value.
-Deserts are often found bordering badlands (all variants) or mangrove swamps. Other biomes they can border include jungles (all variants), savannas, windswept savannas, plains and forests (regular variant only).
->> Replace ground surface with sand
->> Place cactus trees
-7. Savanna
-Savannas typically generate bordering a desert, forest or plains biome. Acacia and small oak trees are the two types of trees that grow here; this is the only place where acacia trees naturally generate. As the savannas have arid climates, it never rains here and thus lightning can never naturally strike; however, overcast skies (and daytime hostile mobs spawning in the case of thunderstorms) still apply. Grass and leaves in the savanna take on an olive-green color, giving an impression of dryness.
->> Place acacia trees
->> Place small oak trees rarely
->> Replace ground surface with grass
->> Would be nice to have yellow grass
-8. Plains
-Plains biomes are common and expansive, and can border sunflower plains, forests, flower forests, savannas, deserts, badlands, meadows, cherry groves, taigas, snowy plains, and snowy slopes. They are the second most common Overworld biome, after forests, and make up around 11% of the Overworld by area.
->> Replace ground surface with grass
->> Place small oak trees rarely
->> Place  tall and short grass
-9. Snowy Plains
-Snowy plains are plains covered with snow layers.
-Snowy plains generate in areas with very low temperature and low to medium humidity, more frequently at negative weirdness. They can border plains, snowy taigas, forests and windswept gravelly hills.
-At higher elevations, snowy plains give way to snowy slopes, jagged peaks and frozen peaks, less frequently to groves. Regular snowy plains are often separated from ice spikes or snowy taigas by frozen rivers.
-In coastal areas, snowy plains border frozen oceans, with snowy beaches generating along the coastline.
->> Replace ground surface with snow
->> Place tree-less oak trees
-10. Forest
-Forests feature dense trees compared to other biomes. Lilies of the valley, rose bushes, peonies and lilacs generate in this biome family along with the usual dandelions; in Java Edition, poppies also generate here. Bushes generate here in small patches. Leaf litter generates scattered on the ground. Grass takes on a dark but vibrant green color. 
->> Replace ground surface with grass
->> Place oak and birch trees
-11. Jungle
-Jungles contain varying vegetation, from the typical dense foliage of the main jungle biomes to the grassy meadows that form in sparse jungle biomes. Large oak trees and small or tall jungle trees generate here. Jungle trees can grow tall and are the tallest trees in the game, with the tallest of them being over 30 blocks in height. 
-Jungles can border forests, plains, deserts, wooded badlands, birch forests and dark forests. Regular jungles are often separated from sparse jungles or bamboo jungles by rivers. 
->> Replace ground surface with grass
->> Place jungle trees
-12. Taiga
-The taiga's surface is a grassland with a large number of ferns and large ferns, and is forested with pine and spruce trees, which are the only trees that can generate in this biome. The vegetation also includes short grass, dandelions, poppies and sweet berry bushes, and takes an aquamarine color tone. 
->> Replace ground surface with grass
->> Place spruce trees
-13. Snowy Taiga
-Snowy taigas are similar to regular taiga, featuring large numbers of spruce trees. 
-Snowy taigas are most commonly bordered by snowy plains, groves, snowy beaches, and regular taigas, and often separated from snowy plains by rivers.
->> Replace ground surface with snow
->> Place spruce trees with snowy leaves
-14. Stony Peaks
-Stony peaks are a warmer variation of both the jagged peaks and the frozen peaks biomes that generates when a mountain peak is in the lukewarm biome temperature range. 
-15. Snowy Peaks
-The frozen peaks are covered by snow, snow blocks, with glaciers of packed ice and occasional small blobs of ice
->> Replace ground surface with snow
-
-
-Biome Lookup Tables
-Inland Biomes
-PVECoastNear-inlandMid-inlandFar-inlandValleysE=0~1Beach biomesT<4: Middle biomes
-T=4: Badland biomesE=2~5E=6LowE=0~1E=2Middle biomesT<4: Middle biomes
-T=4: Badland biomesE=3E=4Middle biomesE=5E=6Middle biomesMidE=0T<4: Middle biomes
-T=4: Badland biomesE=1T<4: Middle biomes
-T=4: Badland biomesT<4: Middle biomes
-T=4: Badland biomesE=2Middle biomesT<4: Middle biomes
-T=4: Badland biomesMiddle biomesE=3Middle biomes
-T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5Beach biomesE=6Middle biomesHighE=0Middle biomesMiddle biomesT<=2: Frozen Peaks
-T>2: Jagged PeaksE=1T<4: Middle biomes
-T=4: Badland biomesMiddle biomesE=2Middle biomesMiddle biomesMiddle biomesE=3T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5Middle biomesE=6Middle biomesPeaksE=0T<=2: Frozen Peaks
-T>2: Jagged Peaks
-T<=2: Frozen Peaks
-T>2: Jagged PeaksE=1T<4: Middle biomes
-T=4: Badland biomesE=2Middle biomesMiddle biomesMiddle biomesE=3T<4: Middle biomes
-T=4: Badland biomesE=4Middle biomesE=5E=6Middle biomesBeach biomes 
-TBiomesT=0Snowy BeachT=1,2,3BeachT=4DesertBadland biomes 
-HBiomesH=0~2DesertH=3,4SavannaMiddle biomes 
-T/HT=0T=1T=2T=3T=4H=0Snowy PlainsPlainsSavannaDesertH=1H=2Snowy TaigaForestPlainsH=3TaigaForestJungleH=4TaigaJungleNon-inland Biomes
-TOceansDeep OceansT=0Frozen OceanFrozen OceanT=1~4OceanDeep Ocean
-
-
-TERRAIN
-We need these XY fields per block.
-1. Temperature T
-2. Humidity H
-3. Continentalness C
-4. Erosion E
-5. Weirdness W
-6. Peaks?and?Valleys PV
-PV = 1 ? | ( 3 * abs( W ) ) ? 2 |
-7. Depth D
-For a surface Y = Y_surf(X,Z), set D(Y) = max(0, (Y_surf ? Y) / 128.0)  - each block down increases D by 1/128.
-Use these values when making biome decisions. All values are in the range [-1, 1].
-Temperature
-[?1.00, ?0.45)T0[?0.45, ?0.15)T1[?0.15, 0.20)T2[0.20, 0.55)T3[0.55, 1.00] T4Humidity
-[?1.00, ?0.35)H0[?0.35, ?0.10)H1[?0.10, 0.10)H2[0.10, 0.30)H3[0.30, 1.00] H4Continentalness
-[?1.20, ?1.05)Deep Ocean[?1.05, ?0.455)Deep Ocean[?0.455, ?0.19)Ocean[?0.19, ?0.11)Coast[?0.11, 0.03)Near?inland[0.03, 0.30)Mid?inland[0.30, 1.00]Far?inlandErosion
-[?1.00, ?0.78)E0[?0.78, ?0.375)E1[?0.375, ?0.2225)E2[?0.2225, 0.05)E3[0.05, 0.45)E4[0.45, 0.55)E5[0.55, 1.00]E6Peaks and Valleys
-  [?1.00, ?0.85)Valleys  [?0.85, ?0.2)Low  [?0.2, 0.2)Mod  [0.2, 0.7)High  [0.7, 1.0]PeaksFrequencies from Minecraft overworld.json (1.18+).  Denominators should map (roughly) to our Perlin noise scale.
-* const double FREQ_T = 1.0 / 8192.0;   // temperature
-* const double FREQ_H = 1.0 / 8192.0;   // humidity
-* const double FREQ_C = 1.0 / 2048.0;   // continentalness
-* const double FREQ_E = 1.0 / 1024.0;   // erosion
-* const double FREQ_W = 1.0 / 1024.0;   // weirdness
-* const double FREQ_3D = 1.0 / 200.0;   // base 3D density noise
-* const double FREQ_RIVER = 1.0 / 1024.0; // river noise
-Octaves can be inferred from this image.
-
-TERRAIN SHAPING
-Use some depth bias or top and bottom slides to compress the terrain and minimize floaty bits.
-Use continents, erosion, and ridge noise with to determine a terrain height offset and scale. This will be used to raise/lower and squish/stretch the 3D noise. Each of these three noises will have two piece-wise linear curves, one for offset and one for scale.
-From the .json and LLMS:
-We build a 3D density field D(X,Y,Z). A solid block is placed when D > 0.  Otherwise air or water.
-D = SQUEEZE( N3D(X,Y,Z) * A )  + vertical_bias(Y; C,E,PV) + terrain_offset(C,E,PV)
-Use a simple Y clamped gradient resembling Java:
-vertical_bias = lerp( map(Y, 0, SEA_LEVEL+64, +1.4, ?1.2),  // above sea gets airy
-                      map(Y, 0, SEA_LEVEL?32, +2.0, +0.6),   // near bottom stays solid
-                      clamp01((C+1.2)/2.2) )                 // slightly adapt by C
-terrain_offset = spline(CONTINENTALNESS_SPLINE, C) + spline(EROSION_SPLINE, E) + spline(PV_SPLINE, PV);
-
-
-CAVES
-Cheese and spaghetti caves.
-From the .json:
-* const double FREQ_CHEESE = 1.0 / 128.0;
-* const double TH_CHEESE = 0.575;
-* const double FREQ_SPAG = 1.0 / 64.0;
-* const double SPAG_HOLLOWNESS = 0.083;
-* const double SPAG_THICKNESS = 0.666;
-SURFACE REPLACEMENT
-Replace stone with grass, dirt, or sand. Replace water with ice.
-FEATURES
-Add trees using pre-made stamps with leaves that can optionally be omitted.
-CARVERS
-Rivers, canyons, and caves with carvers.
-
-
-

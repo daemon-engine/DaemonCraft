@@ -1,127 +1,0 @@
-SIMPLE MINER ASSIGNMENT 04
-WORLD GENERATION
-OVERVIEW	
-Assignment 04: World Generation will upgrade our procedural generation to incorporate additional Minecraft features, including Overworld biome generation with temperature, humidity, continentalness, erosion, weirdness, peaks and valleys, and depth noise layers, and support for a limited number of biomes. Terrain generation and shaping will use 3D density noise with curves. Caves will be made of cheese and spaghetti. Trees will be placed according to biome, and there may be additional steps for surface replacement and carvers.
-SPRITES AND DEFINITIONS
-IMPORTANT
-There are new sprite sheets and definition files for you to use. You must use them. They have the new biome-dependent tree sprites.
-EXPECTED RESULTS
-Not sure yet!
-RESOURCES	
-You are expected to watch the video below and consult the Minecraft Wiki links for data or details that are not in this document.
-Reinventing Minecraft world generation by Henrik Kniberg
-https://www.youtube.com/watch?v=ob3VwY4JyzE
-Minecraft Wiki - World Generation
-https://minecraft.wiki/w/World_generation
-
-
-REQUIREMENTS	
-GENERAL
-1. Use the sprite sheet and definition files from the zip on Canvas.
-2. Do not modify the provided definition files.
-3. Use the noise functions provided on Canvas.
-4. All requirements from previous assignments still apply unless explicitly overridden or stated otherwise.
-5. The reference build functionality must be matched even if not specifically mentioned in this document.
-6. Turn on Multi-processor Compilation for all your projects.
-CONTROLS AND INTERFACE
-FREE-FLY CAMERA MODE
-Mouse and KeyboardGamepadActionMouse x-axisRight stick x-axisYawMouse y-axisRight stick y-axisPitchA / DLeft stick x-axisMove left or right, relative to the cameraW / SLeft stick y-axisMove forward or back, relative to the cameraQ / ELeft shoulder / right shoulderMove up or down, relative to the worldShiftLeft trigger / right triggerIncrease speed while heldCDpad Up	Toggle camera modeLMBX buttonDigs a blockRMBY buttonPlaces a block1Dpad left	Glowstone2Dpad downCobblestone3Dpad rightChiseledBrickF2-Toggle chunk debug drawF3-Toggle job system debug drawF8-Reload1. Camera has two modes.
-a. SpectatorFull, which is normal free-fly camera.
-b. SpectatorXY, which only allows movement in the XY-plane but is otherwise similar to SpectatorFull.
-2. The gamepad should aim the camera at a maximum rate of 180 degrees per second.
-3. The camera should move at a default speed of 4 units per second.
-4. Shift increases the speed by a factor of 20.
-5. Clamp camera pitch to between -85 to +85 degrees.
-6. The mouse should aim the camera at a rate of 0.075 per mouse delta.
-7. Reload should shutdown, delete, create, and startup the game the start a new game.
-8. Start the camera at position (-50, -50, 150) and orientation (45, 45, 0).
-9. Set your camera fov to 60, near clip to 0.01, and far clip to 10000.
-Interface
-1. Print all controls to the dev console on startup.
-2. Run the game in a fullscreen borderless window by default.
-3. Display instructions for digging and placing in the top left of the screen.
-4. Display the current camera mode and key for changing in the top middle-left of the screen.
-5. Display the current selected block type and keys for changing in the top middle of the screen.
-6. Display the current FPS in the top right of the screen.
-7. Chunk debug draw renders the current chunk coords of the camera, the number of active chunks, and all chunk bounding boxes.
-8. Job system debug draw shows the count of chunks in each state and jobs in each state.
-1. Note: All D3D11 activity should be done from only one thread; specifically, the main thread.
-CHUNK SAVING AND LOADING
-Before doing anything else, go back and make sure you are properly checking for the existence of a Saves folder and creating it if it doesn’t exist. Here is the exact code you can use to do that with std::filesystem.
-
-
-
-TERRAIN GENERATION
-Implement the following pipeline stages as described in lecture and notes.
-WORLD GENERATION PIPELINE STAGES
-1. Biomes
-Biomes are determined and stored. No terrain is generated at this stage.
-2. Noise
-The base terrain is created and shaped with 3D noise.
-3. Surface
-The surface of the terrain is replaced with biome-dependent blocks or overridden based on temperature and humidity.
-4. Features
-Features, or in our case trees, are placed according to biome using pre-existing randomized voxel geometry called stamps.
-5. Caves
-Cheese caves and spaghetti caves are generated.
-6. Carvers
-Carvers carve certain parts of the terrain and replace solid blocks with air.
-7. Rivers
-Maybe as a separate step or as part of biomes, not sure yet.
-
-
-
-
-SUBMISSION
-For this assignment submit your work to Perforce and submit depot paths for Engine and SimpleMiner to Canvas.
-Your submission should look like the following.
-//depot/C34/Students/username/SD/Engine/...@999999
-//depot/C34/Students/username/SD/SimpleMiner/...@999999
-SUBMITTING DEPOT PATHS TO CANVAS 
-Submit text containing the depot path(s) and changelist(s) for all folders required to build and run your project. Ensure you are submitting properly formatted depot paths. Include no other text or information. 
-A properly formatted depot path should look like the following.
-//depot/C33/Students/username/SD/Folder/...@999999
-You can, and should, copy depot paths directly from Perforce. You can do that as follows.
-1. Select the Depot tab. This will display all paths as depot paths.
-2. Select your project folder in the depot folder list.
-3. Go to the History pane. You can open it from the View menu if needed.
-4. Select the changelist for the revision you intend to submit for the assignment. Generally, this is the most recent revision.
-5. Go to the Details pane.
-6. Copy the text in the Revision field and paste that into Canvas.
-
-
-
-
-RUBRIC	
-CategoryItemPointsGeneralFile saving and loading5GeneralBiomes25GeneralTerrain25GeneralCaves25GeneralSurface20
-CategoryItemPointsDeductionsUnable to get your submission from Perforce and build and run your project, for any reason at all.-100DeductionsAny compile warnings, including those other professors are OK with.-5DeductionsAny temporary, intermediate, or otherwise unnecessary files submitted to Perforce.-5
-
-
-COMMON ERRORS
-There are many ways to get a zero due to me not being able to build and run your project.
-* Submitting an incorrect Perforce depot path.
-o Submitting a workspace path instead of a depot path.
-o Selecting the wrong changelist before copying the depot path.
-o Selecting the wrong folder before copying the depot path.
-o Attempting to type the depot path manually and failing miserably.
-* Failing to build
-o Compile errors.
-o Linker errors.
-o Files missing from Perforce.
-o Executable files are submitted to Perforce but filetype is not set to Always writable in workspace.
-o Not submitting depot paths for all folders required by your project.
-o References to third party tools or SDKs that I do not have.
-If your project does not build you are free to fix the errors and resubmit to get regraded according to the standard late policy. Because I can’t guarantee when projects will be graded, this usually ends up with the maximum late penalty of -50%. 
-Each student gets one reduced penalty on their first resubmission due to failing to build or run. The penalty will be capped at one day, for a maximum of -20%.
-Do buddy builds. They can find almost all the problems above and can save your grade.
-QUALITY
-I reserve the right to deduct points, regardless of rubric point allocations, for problems that are sufficiently noticeable and detrimental and should have been fixed regardless of the assignment or rubric.
-* For example:
-o Bugs or problems that interfere with game play.
-o Bugs or problems that render other parts of the assignment untestable.
-o Rendering artifacts that affect overall visual quality.
-o Control issues that affect playability and the user experience.
-You are expected to always exercise good judgement. If something looks bad or feels bad, fix it.
-
-
-

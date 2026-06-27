@@ -1,327 +1,0 @@
-SIMPLE MINER ASSIGNMENT 05
-RENDERING AND LIGHTING
-OVERVIEW	
-Assignment SDST-A05: Rendering and Lighting continues our SD major project: SimpleMiner, a simplified Minecraft-style procedurally-generated persistent 3D voxel world with volumetric lighting, physics, and simple gameplay elements.
-For this assignment, our goals include the following.
-1. All features of previous assignments working.
-2. Complete hidden surface removal, including at chunk boundaries.
-3. Optional auto mipmap generation and sampling for textures.
-4. Indoor (0-15) and outdoor (0-15) per-block voxel-volume light influence values for each block.
-5. Each block has additional bit flags for lighting and properties.
-6. Indoor and outdoor voxel-grid light influence maps, propagate around corners, not through walls.
-7. Block face quad vertexes are colored based on light influence values from neighboring blocks they face.
-8. Vertex color red component is neighboring outdoor light influence in [0,1], green is indoor influence.
-a. Optionally, and preferably, the blue component contains the existing direction-based greyscale.
-9. Chunk activation is masked by sky-colored fog which thickens to 100% opacity before activation range.
-10. Pixel shader takes, as constant buffer data the camera world position (for fog), and indoor and outdoor light colors.
-11. Day and night cycles, in which the sky and fog modulate between light blue (noon) and black (night).
-12. Lightning strikes, from Perlin noise, which temporarily lerp outdoor light and sky color toward white.
-13. Digging and placing blocks, including glowstone and cobblestone, and correctly updating light influences.
-14. Light influence values are quickly and correctly calculated upon chunk activation and deactivation.
-15. Light influence from adjacent chunks correctly propagates across chunks, above and below ground.
-16. Maintain a target framerate of at least 60 FPS in Release, even while activating and deactivating chunks.
-17. Adhere precisely to the specifications we establish in class.
-
-EXPECTED RESULTS
-
-REQUIREMENTS	
-GENERAL
-1. Use the sprite sheet and definition files from the zip on Canvas.
-2. Do not modify the provided definition files.
-3. Use the noise functions provided on Canvas.
-4. All requirements from previous assignments still apply unless explicitly overridden or stated otherwise.
-5. The reference build functionality must be matched even if not specifically mentioned in this document.
-6. Turn on Multi-processor Compilation for all your projects.
-
-
-CONTROLS AND INTERFACE
-FREE-FLY CAMERA MODE
-Mouse and KeyboardActionMouse x-axisYawMouse y-axisPitchA / DMove left or right, relative to the cameraW / SMove forward or back, relative to the cameraQ / EMove up or down, relative to the worldShiftIncrease speed while heldCToggle camera modeYAccelerate world time while heldRToggle raycast lockingLMBDigs a blockRMBPlaces a block1Glowstone2Cobblestone3ChiseledBrickF2Toggle chunk debug drawF3Toggle job system debug drawF8Reload1. Camera has two modes.
-a. SpectatorFull, which is normal free-fly camera.
-b. SpectatorXY, which only allows movement in the XY-plane but is otherwise similar to SpectatorFull.
-2. The gamepad should aim the camera at a maximum rate of 180 degrees per second.
-3. The camera should move at a default speed of 4 units per second.
-4. Shift increases the speed by a factor of 20.
-5. Clamp camera pitch to between -85 to +85 degrees.
-6. The mouse should aim the camera at a rate of 0.075 per mouse delta.
-7. Reload should shutdown, delete, create, and startup the game the start a new game.
-8. Start the camera at position (-50, -50, 150) and orientation (45, 45, 0).
-9. Set your camera fov to 60, near clip to 0.01, and far clip to 10000.
-10. Accelerate game time by a scale of 50x while Y is held.
-Interface
-1. Print all controls to the dev console on startup.
-2. Run the game in a fullscreen borderless window by default.
-3. Display instructions for digging and placing in the top left of the screen.
-4. Display the current camera mode and key for changing in the top middle-left of the screen.
-5. Display the current selected block type and keys for changing in the top middle of the screen.
-6. Display the current FPS in the top right of the screen.
-7. Chunk debug draw renders the current chunk coords of the camera, the number of active chunks, and all chunk bounding boxes.
-8. Job system debug draw shows the count of chunks in each state and jobs in each state.
-Note: All D3D11 activity should be done from only one thread; specifically, the main thread.
-BLOCK ITERATORS
-Block iterators will now need to be able to cross chunk boundaries.
-Requirements
-1. Identify the current block by index within a chunk.
-2. Determine local x, y, z from the block index.
-3. Handle neighbor lookup for all six directions.
-4. Detect and handle crossing chunk boundaries.
-5. Select neighbor chunks when crossing edges.
-6. Return null or invalid iterator when no valid neighbor exists.
-7. Preserve other coordinate bits when updating one axis.
-Example
-Consider iterating north and crossing a chunk boundary as an example.
-
-// Calculate new index by zeroing out the y bits in the current index
-// by bitwise-AND with the bitwise-NOT of the y chunk mask
-// - The y chunk mask will look something like 0001111000
-// - The bitwise-NOT of the above will look something like 1110000111
-// - The bitwise-AND with the above will zero out the y bits while preserving the rest
-if y == CHUNK_MAX_Y
-// At max y, we need to cross over to the chunk to our north 
-return block_iterator(north_neighbor, block_index & ~CHUNK_MASK_Y)
-else
-// You should already have this
-return block_iterator(chunk, (block_index & ~CHUNK_MASK_Y) | (y + 1) << CHUNK_BITS_X)
-Why This Works
-1. The world is divided into chunks, each storing local x, y, z values.
-2. When y reaches its limit, we cross a chunk boundary.
-3. Clearing the y bits resets the coordinate for the new chunk.
-4. Using the neighbor pointer ensures we continue in the correct direction.
-5. Other coordinates stay the same, keeping the move one block north in world space.
-CHUNK HIDDEN SURFACE REMOVAL
-We will now remove hidden surfaces at chunk boundaries. I recommend doing mipmaps before this step, so you can see some artifacts it will fix.
-1. Mesh construction is done in the main thread.
-a. Chunks are marked dirty and placed in a list of dirty chunks.
-b. Chunks closest to the camera are built first.
-c. Up to 2 chunks are built per frame.
-d. Only construct meshes for chunks with all 4 neighbors active.
-i. You may need to change your code to allow for active chunks that don’t have meshes.
-MIPMAPPING
-Implement auto gen mipmapping.
-1. Drop your existing Renderer, Camera, perspective matrix math, and default shader onto ChatGPT and ask it how.
-a. Chat GPT did a good job, got it all correct, and the task is simple. Easier than trying to read the documentation.
-2. Make mipmap generation and allow specifying the number of levels.
-a. We don’t want all levels. Only 5 levels for 32-pixel sprites and 6 levels for 64-pixel sprites. 
-DATA STRUCTURES AND FUNDAMENTALS
-Block Data
-1. Your Block class should hold one additional byte (uint8_t) of light influence data.
-2. Encoded within this single byte are the block:
-a. Outdoor light influence (integer 0 through 15), stored in the high nibble (4 largest bits).
-b. Indoor light influence (integer 0 through 15), stored in the low nibble (4 smallest bits).
-3. Simple indoor and outdoor light influence level Get/Set inline methods on Block, using bit masks.
-4. Another single-byte member variable on Block, used to store up to 8 bitflags for the block.
-5. The sizeof(Block) should therefore now be exactly 3 bytes.
-6. Simple IsXXX() and SetXXX() methods on Block for each bitflag.
-a. For example, bool Block::IsSky() const and SetIsSky(bool isSky).
-7. You need the following bitflags:
-a. BLOCK_BIT_MASK_IS_SKY: I am non-opaque and no opaque blocks are above me
-b. BLOCK_BIT_MASK_IS_LIGHT_DIRTY: A block iterator for me is currently in the dirty light queue.
-c. BLOCK_BIT_MASK_IS_FULL_OPAQUE: I block light, visibility, and hide my neighbors faces.
-d. BLOCK_BIT_MASK_IS_SOLID: Physical objects and physics raycasts collide with me.
-e. BLOCK_BIT_MASK_IS_VISIBLE: I cannot be skipped during chunk mesh rebuilding.
-f. This is a great place to drop your existing code on ChatGPT and ask about performant and idiomatic ways set and get bits. It even explains why. But do try it yourself first as it is a good coding exercise. 
-Glowstone and Cobblestone 
-1. Glowstone is solid, opaque, and emits 15 indoor light.
-2. Support the ability to for player to dig and place both glowstone and cobblestone.
-Dirty Block Lighting Queue and Flag
-1. World owns a queue of block iterators by value (std::deque<BlockIterator>), of blocks whose indoor or outdoor light influence values are considered dirty, meaning their lighting might be incorrect.
-2. Blocks are never duplicated in the dirty queue.
-3. Your World class offers the following methods or their equivalents relating to light dirtying.
-a. ProcessDirtyLighting(): processes and propagates all dirty light blocks until none remain.
-b. ProcessNextDirtyLightBlock(): pops the front block in the queue, recomputes its lighting, and clears its BLOCK_BIT_IS_LIGHT_DIRTY flag.
-c. MarkLightingDirty(): adds a block iterator to the back of the dirty light queue if that block is not already flagged as dirty and then flags it as dirty.
-d. UndirtyAllBlocksInChunk(): scans the dirty queue, removes all blocks from that chunk. May be useful when chunks deactivate.
-e. MarkLightingDirtyIfNotOpaque(): called on neighbors when my light influences change, useful for simplifying other light propagation logic
-4. Note that, unless otherwise specified, marking a block dirty means specifically:
-a. If the block itself already has the light dirty flag set:
-i. Do nothing.
-b. Otherwise:
-i. Constructing a block iterator identifying the block in question.
-ii. Pushing it onto the back of the world dirty lighting queue.
-iii. Flagging the block as light dirty, so we know it is in the queue.
-LIGHT INFLUENCE INITIALIZATION AND PROPAGATION
-When a chunk is activated, the indoor and outdoor light influence values for its blocks should be set carefully and efficiently. Marking all blocks in a new chunk as dirty would be correct but pathologically slow.
-Chunk Activation and Light Influence Initialization
-1. Blocks should default to 0 indoor and outdoor light influence, and lighting not flagged dirty.
-2. First, generate and activate the chunk as normal, then:
-3. Mark non-opaque boundary blocks touching any existing neighboring chunk as light dirty.
-4. Descend each column downward from the top, flagging blocks as SKY, stopping at first opaque.
-5. Descend each column again until first opaque and set each block outdoor light influence to maximum (15), and mark its non-opaque non-sky horizontal neighbors dirty.
-6. Loop through each block in the chunk and if it has a block type that emits light, mark it light dirty.
-7. The result should be that:
-a. All blocks have zero indoor light influence, direct-sky blocks (only) have a max (15) outdoor influence, and all non-sky blocks have zero outdoor light influence.
-b. Light-emitting blocks are dirty, with incorrect zero light influence.
-c. Edge boundary air blocks with chunk neighbors are dirty, as are non-sky air neighbors of sky blocks.
-d. Note that there is ONE dirty lighting queue for all chunks, not one per chunk.
-Dirty Light Processing
-1. All dirty light is fully resolved each frame in one call to ProcessDirtyLighting().
-2. While any dirty light block iterators are in the queue, pop the front one and process it:
-a. Clear the dirty light flag, as it is no longer in the queue.
-b. Compute the theoretically-correct indoor and outdoor light influence.
-c. Compare theoretically-correct indoor and outdoor light influences to current influences.
-d. If either light influence value is incorrect:
-i. Update indoor and outdoor light influence values to their correct values.
-ii. Mark this chunk and the chunks of my 6 neighboring blocks as having a dirty vertex mesh.
-iii. Mark each of its 6 neighboring blocks as dirty, but only if they are non-opaque.
-Computing Correct Light Influence for a Block
-1. Theoretically-correct block indoor and outdoor light influence are computed as follows:
-a. If the block is SKY, its outdoor light influence is maximum.
-b. If the block’s type emits indoor or outdoor light, its light influences are at least those levels.
-c. If the block is not opaque, its indoor and outdoor light influences are at least one less than the highest corresponding level on any of its 6 neighboring blocks.
-WORLD SHADER
-Light Influences as Vertex Colors
-1. For each block face being added during chunk mesh rebuild, the vertex colors of all four vertexes on that face are determined by the light influence levels of the neighboring block faced.
-a. For example, my east face vertexes are colored based on my east neighbor block light influence values.
-2. The corresponding neighboring block outdoor light influence level is normalized and stored in the vertex color red channel.
-3. The neighboring block indoor light influence is normalized and stored in the green channel. 
-4. The blue channel will remain the grey scale shading of the face based on its direction.
-
-
-World Shader
-Start from your existing default shader.
-1. Vertex shader
-a. Passes the world position of the vertex as to the pixel shader.
-2. Pixel shader
-a. Requires the following additional gameplay constants buffer data to be passed in:
-i. Camera world position, for fog distance calculation.
-ii. Current global indoor light color. Defaults to (255, 230, 204).
-iii. Current global outdoor light color. Defaults to white (255, 255, 255).
-iv. Current sky color. Defaults to (0, 0, 0) and updated at run time according to factors such as day and night.
-v. Current fog far and near distance. Defaults to activation_range – (2 * chunk_size) and half that, respectively.
-b. Expects the world position of the pixel, passed from vertex shader.
-c. Computes the diffuse light color as being the diminishing add of:
-i. Outdoor light influence (input.color.r) times outdoor light color
-ii. Indoor light influence (input.color.g) times indoor light color
-DiminishingAdd(a, b) = 1 – (1 - a)(1 - b), assuming a and b are in [0, 1].
-d. Multiplies color of the sampled texel by the diffuse light color and vertex color (input.color.b)
-e. And, lastly, mixes in some sky-colored distance-based fog:
-i. Computes world distance from pixel to camera.
-ii. Fog fraction is distance into fog [near, far] range-mapped and clamped to [0, 1].
-iii. Blends final color toward the fog color based on (fog fraction * fog max alpha).
-
-cbuffer WorldConstants : register(b4)
-{
-    float4 CameraPosition;
-    float4 IndoorLightColor;
-    float4 OutdoorLightColor;
-    float4 SkyColor;
-    float FogNearDistance;
-    float FogFarDistance;
-    float2 Padding;
-};Fun side note: Squirrel has often said the diminishing add is his favorite math trick. Unfortunately, I don’t know why. Probably because there are other cool things you can do with it. Ask him about it in one of his classes! And then let me know what he says.
-
-
-DIGGING AND PLACING BLOCKS
-EFFECTS OF DIGGING AND PLACING BLOCKS
-During gameplay, anytime a block is changed, it may affect indoor and outdoor lighting.
-Digging
-1. When removing any block:
-a. Set its new block type.
-b. Mark its light as dirty.
-c. Do NOT update its light influences. Let the lighting algorithm handle that.
-d. If the block above is flagged SKY, descend downward starting here until you reach the first opaque block directly below it, flagging each non-opaque block descended through as SKY, and dirtying it.
-e. Example: break through the roof of a cave, and a beam of sunlight streams in down to the floor.
-Placing
-1. When placing any block:
-a. Set its new block type.
-b. Mark its light as dirty.
-c. Do NOT update its light influences. Let the lighting algorithm handle that.
-d. If the block replaced was flagged as SKY and the new block is opaque, clear the SKY flag and descend downward, clearing all SKY flags directly below and dirtying their lighting until you reach opaque.
-e. Example: plug up a vertical mineshaft, cutting off sunlight and plunging the cave into darkness.
-RAYCAST AND IMPROVED BLOCK PLACEMENT AND  DIGGING
-Camera Forward Raycast
-1. Every frame, a raycast starting at the camera world position and going camera-forward outward 8.0 meters is performed.  The block and block face impacted, if any, are included in the custom GameRaycastResult3D struct, which derives from your engine RaycastResult3D struct.
-2. The raycast should use a custom version of the Fast Voxel Raycast algorithm with the following modification: instead of tracking tile and block coordinates as the algorithm advances from block to block, it should maintain a block iterator. This helps ensure the raycast remains very fast even in a chunked world.
-3. The surface of the block impacted by the raycast, if any, is highlighted in some clear way and drawn separately without modifying any chunk mesh vertex data.
-4. Pressing R toggles [un]locking the raycast position and direction to those of the camera, such that one can press R and then step aside and view the raycast separately.
-5. When the raycast is locked, it is drawn in 3D, indicating hit or miss and impact position, if any.
-6. The raycast World::RaycastVsBlocks is performed fresh every frame, regardless of whether it is locked.
-7. Block selection, placement, and digging are based on the current raycast.
-Improved Block Placement and Digging
-1. Pressing the LMB digs (converts to air) the block currently impacted by the raycast (or none).
-2. Pressing the RMB places a new block (converted from air) on the side of the block impacted by the raycast (or none).
-3. The current block placement type is printed onscreen and modified by pressing one of the number keys.
-
-
-OUTDOOR LIGHTING EFFECTS
-DAY AND NIGHT
-Note that as day and night pass, no light influences need to change or become dirty, nor do any chunk meshes need to be rebuilt, as changes in lighting merely affect shader constant buffer values and not vertex values.
-World Time and Time of Day
-1. Use your Clock class to store the world time in days.
-2. Time of day is the fractional [0,1) part of world time, where 0.0 = midnight, 0.25 = dawn (6am), 0.5 = noon, 0.75 = dusk (6pm).
-3. Use a base world time to real time ratio of 500 : 1.
-4. While the Y key is held, world time accelerates 100x faster than normal.
-
-worldTimeScale = acceleration * baseWorldTimeScale / (60.0f * 60.0f * 24.0f)Sky and Fog Color
-1. The sky and matching fog color should hold steady at dark blue (20, 20, 40) throughout nighttime (between 6pm and 6am), and lerp toward light blue (200, 230, 255) at high noon.
-2. The sky color is not drawn; it is the clear color used at frame rendering start.
-Variable Outdoor Light
-1. The current outdoor light color should also vary with time of day, from dark blue grey at midnight to full white during the daytime
-2. Pass the color via constant buffer to be used in the pixel shader to contribute color to faces based on their outdoor light influence level.
-LIGHTNING STRIKES AND GLOWSTONE FLICKERING 
-Since indoor and outdoor light influences are fixed and do NOT change with day, night, or lightning strikes, we create lighting flashes and glowstone flickers simply by changing the constant buffer values we pass for outdoor and indoor light colors.
-Lightning Strike Flashes 
-1. Use 1D Perlin noise, based on world time, using 9 octaves and 200 scale, for lightningPerlin each frame.
-2. Range-map and clamp lightningPerlin in [0.6, 0.9] to lightningStrength in [0, 1].
-3. Lerp the current sky color and outdoor light color toward white (255, 255, 255) based on lightningStrength.
-Glowstone Flicker
-1. Use 1D Perlin noise, based on world time, using 9 octaves and 500 scale, for glowPerlin each frame.
-2. Range-map and clamp glowPerlin in [-1, 1] to glowStrength in [0.8 ,1].
-3. Multiply base indoor light color by glowStrength to get the current indoor light color.
-
-
-
-
-SUBMISSION
-For this assignment submit your work to Perforce and submit depot paths for Engine and SimpleMiner to Canvas.
-Your submission should look like the following.
-//depot/C34/Students/username/SD/Engine/...@999999
-//depot/C34/Students/username/SD/SimpleMiner/...@999999
-SUBMITTING DEPOT PATHS TO CANVAS 
-Submit text containing the depot path(s) and changelist(s) for all folders required to build and run your project. Ensure you are submitting properly formatted depot paths. Include no other text or information. 
-A properly formatted depot path should look like the following.
-//depot/C33/Students/username/SD/Folder/...@999999
-You can, and should, copy depot paths directly from Perforce. You can do that as follows.
-1. Select the Depot tab. This will display all paths as depot paths.
-2. Select your project folder in the depot folder list.
-3. Go to the History pane. You can open it from the View menu if needed.
-4. Select the changelist for the revision you intend to submit for the assignment. Generally, this is the most recent revision.
-5. Go to the Details pane.
-6. Copy the text in the Revision field and paste that into Canvas.
-
-
-
-
-RUBRIC	
-CategoryItemPointsGeneralBlock iterators5GeneralHidden surface removal5GeneralMipmapping5GeneralData structures and fundamentals15GeneralLight influence initialization and propagation20GeneralWorld shader15GeneralDigging and placing blocks20GeneralOutdoor lighting effects15
-CategoryItemPointsDeductionsUnable to get your submission from Perforce and build and run your project, for any reason at all.-100DeductionsAny compile warnings, including those other professors are OK with.-5DeductionsAny temporary, intermediate, or otherwise unnecessary files submitted to Perforce.-5
-
-
-COMMON ERRORS
-There are many ways to get a zero due to me not being able to build and run your project.
-* Submitting an incorrect Perforce depot path.
-o Submitting a workspace path instead of a depot path.
-o Selecting the wrong changelist before copying the depot path.
-o Selecting the wrong folder before copying the depot path.
-o Attempting to type the depot path manually and failing miserably.
-* Failing to build
-o Compile errors.
-o Linker errors.
-o Files missing from Perforce.
-o Executable files are submitted to Perforce but filetype is not set to Always writable in workspace.
-o Not submitting depot paths for all folders required by your project.
-o References to third party tools or SDKs that I do not have.
-If your project does not build you are free to fix the errors and resubmit to get regraded according to the standard late policy. Because I can’t guarantee when projects will be graded, this usually ends up with the maximum late penalty of -50%. 
-Each student gets one reduced penalty on their first resubmission due to failing to build or run. The penalty will be capped at one day, for a maximum of -20%.
-Do buddy builds. They can find almost all the problems above and can save your grade.
-QUALITY
-I reserve the right to deduct points, regardless of rubric point allocations, for problems that are sufficiently noticeable and detrimental and should have been fixed regardless of the assignment or rubric.
-* For example:
-o Bugs or problems that interfere with game play.
-o Bugs or problems that render other parts of the assignment untestable.
-o Rendering artifacts that affect overall visual quality.
-o Control issues that affect playability and the user experience.
-You are expected to always exercise good judgement. If something looks bad or feels bad, fix it.
-
-
-

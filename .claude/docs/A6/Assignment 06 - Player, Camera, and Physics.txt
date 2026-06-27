@@ -1,198 +1,0 @@
-SIMPLE MINER ASSIGNMENT 06
-PLAYER, CAMERA, AND PHYSICS
-OVERVIEW	
-Assignment 06: Player, Camera, and Physics continues our SD major project: SimpleMiner, a simplified Minecraft-style procedurally generated persistent 3D voxel world with volumetric lighting, physics, and simple gameplay elements.
-For this assignment, our goals include the following.
-1. All features of previous assignments working.
-2. Player derives from Entity, which has an AABB3 physics body.
-3. Solid entities exhibit correct physics vs. the world, and don’t enter, get stuck on, or jitter on solid blocks.
-4. Entity physics is Newtonian, meaning velocity-based, and allowing acceleration, deceleration, and falling.
-5. Each entity is in one of three physics modes: NoClip, Flying (physics), or Walking (physics with gravity).
-6. Walking entities on the ground can jump (gain instant +z velocity boost) up to 1.1 to 1.6 meters high.
-7. Flying and NoClip entities can fly up and down.
-8. Entities experience horizontal XY-friction only, significant while on the ground, minimal while in the air.
-9. Entities have a horizontal speed limit variable, limiting voluntary speed increases.
-10. A GameCamera that can operate detached or be attached to any one entity, with 6 modes:
-a. An attached game camera is in one of 2 modes: FirstPerson or OverTheShoulder.
-b. A detached game camera is in one of 3 modes, Spectator, SpectatorXY, or Independent.
-c. Any attached game camera whose entity isn’t in NoClip mode uses raycasts to keep itself out of walls.
-11. All appropriate develdoper debug drawing and cheat keys.
-12. New build configurations: DebugInline (clone of Debug) and FastBreak (clone of Release).
-13. Maintain a target framerate of at least 60 FPS in Release, even while activating and deactivating chunks.
-14. Adhere precisely to the specifications we establish in class.
-
-EXPECTED RESULTS
-
-REQUIREMENTS	
-GENERAL
-1. Use the sprite sheet and definition files from the zip on Canvas.
-2. Do not modify the provided definition files.
-3. Use the noise functions provided on Canvas.
-4. All requirements from previous assignments still apply unless explicitly overridden or stated otherwise.
-5. The reference build functionality must be matched even if not specifically mentioned in this document.
-6. Turn on Multi-processor Compilation for all your projects.
-7. Have both DebugInline and FastBreak configurations for all your projects.
-
-
-CONTROLS AND INTERFACE
-FREE-FLY CAMERA MODE
-Mouse and KeyboardActionMouse x-axisYawMouse y-axisPitchA / DMove left or right, relative to the cameraW / SMove forward or back, relative to the cameraQ / EMove up or down, relative to the worldShiftIncrease speed while heldSpaceJumpCCycle game camera modeVCycle player physics modeYAccelerate world time while heldLMBDigs a blockRMBPlaces a block1Glowstone2Cobblestone3ChiseledBrickF2Toggle chunk debug drawF3Toggle job system debug drawF8Reload1. Camera has six modes as detailed later in this document.
-a. FirstPerson
-b. OverTheShoulder
-c. SpectatorFull
-d. SpectatorXY
-e. Independent
-2. Unless otherwise specified by camera mode, the camera should:
-a. Move at a default speed of 4 units per second.
-b. Increase the speed by a factor of 20 when Shift is held.
-c. Clamp pitch to between -85 to +85 degrees.
-d. The mouse should aim the camera at a rate of 0.075 per mouse delta.
-e. Start at position (-50, -50, 150) and orientation (45, 45, 0).
-f. Set the FOV to 60, near clip to 0.01, and far clip to 10000.
-3. Reload should shutdown, delete, create, and startup the game the start a new game.
-4. Accelerate world game time by a scale of 100x while Y is held.
-
-
-Interface
-1. Print all controls to the dev console on startup.
-2. Run the game in a fullscreen borderless window by default.
-3. Display at the top of the screen the following:
-a. Mouse button controls for digging and placing.
-b. The current selected block type and keys for changing it.
-c. Current camera mode and key for cycling modes.
-d. Current physics mode and key for cycling modes.
-e. Display the current FPS in the top right of the screen.
-4. Chunk debug draw renders the current chunk coords of the camera, the number of active chunks, and all chunk bounding boxes.
-5. Job system debug draw shows the count of chunks in each state and jobs in each state.
-6. Display a world-aligned small basis in front of the player but only in spectator modes.
-Note: All D3D11 activity should be done from only one thread; specifically, the main thread.
-PLAYER, ENTITY, AND CAMERA
-1. Player derives from Entity.
-2. Physics and rendering logic relates to Entity, not Player, and should work seamlessly for NPCs as well.
-3. GameCamera is in game code, not to be confused with the engine-side Camera, and could be an Entity.
-4. Some sort of architecture for controlling and linking the player and game camera, per the behavior defined below.
-5. Player entity is 1.80m tall, 0.60m wide, with an eye position 1.65m above bottom center.
-PHYSICS MODES
-1. Any Entity can have its m_physicsMode set to any of the following:
-a. WALKING - Full physics vs solid blocks, including gravity.
-b. FLYING - Full physics vs solid blocks, fly up and down, no gravity.
-c. NOCLIP - Like flying, but entity can enter solid blocks.
-2. The player entity cycles through all physics modes by pressing the hot key V.
-3. The player entity current physics mode is rendered on screen.
-CAMERA MODES
-1. Each GameCamera can have its m_cameraMode set to any of the following:
-a. FIRST_PERSON - Camera orients to entity, located at entity eye position.
-b. OVER_SHOULDER - Camera orients to entity, 4m back from eye position.
-c. SPECTATOR - Player is dispossessed, controls move camera directly, WASD movement relative to the camera orientation.
-d. SPECTATOR_XY - Player is dispossessed, controls move camera directly, WASD movement limited to the XY-plane.
-e. INDEPENDENT - Player is dispossessed, controls move the player directly.
-2. The player game camera cycles through each camera mode by pressing the hot key C.
-3. Regardless of camera mode, the entity physics mode logic still runs.
-a. Therefore, a player entity still falls, slides, and collides, in any camera mode.
-4. The player game camera current camera mode is displayed on screen.
-
-
-NEWTONIAN PHYSICS
-1. Entities know if they are on the ground or not, meaning no solid blocks directly below any bottom corner.
-2. Entities have a 3D velocity vector, modified and applied to position every frame.
-3. Entity player control applies forces and velocity changes to the entity.
-4. Gravity, if entity is in WALKING mode, applies additional forces to the entity.
-5. Horizontal friction applies additional forces to entity.
-a. Friction is major when on ground, minor when in-air.
-6. When WALKING or FLYING, entities accelerate quickly up to their full speed when moving.
-7. Entities on ground decelerate and slow reasonably quickly to a stop when not moving.
-PLAYER CONTROLS
-1. Holding WASD accelerates the player entity.
-2. Pressing Space causes the player entity to jump if in WALKING mode and on ground.
-3. Jumping gives the player an instantaneous one-time velocity boost in the +Z direction.
-a. This is often called an impulse force.
-4. Locking raycasts is no longer required.
-ENTITY WORLD CLIPPING
-The following applies to any entity not in NOCLIP physics mode.
-1. Entity cannot enter solid blocks and is never obstructed by non-solid blocks.
-2. Entity does not visibly jitter when standing still, walking, or pressing up against a wall.
-3. Entity does not snag or slow down erratically when walking on ground or sliding along a wall.
-4. Entity does not snap or teleport visibly when contacting with solid blocks from any angle.
-5. Entity does not get stuck on, at, or inside any block, solid or otherwise.
-6. Entity velocity is zeroed out along any direction in which it collides with a solid block.
-7. Entity prevents tunneling when falling from a reasonable height, around 50m.
-a. This can be done using a separate physics clock with a fixed time step that and frame rate limiting.
-b. Preferably entities have perfect preventative Continuous Collision Detection (CCD) and can fall any distance or move at any speed and never tunnel but that is not a requirement for this assignment.
-ENTITY RENDERING
-1. Entities render by appropriately drawing their bounds and local origin in cyan x-ray wireframe.
-2. Entity is not rendered from any camera in first-person mode attached to that entity.
-3. Entity block selection raycast is visualized.
-WATER
-1. I honestly have no plan for how to handle water.
-2. The easiest thing would be to just change the definition and make it solid. That’s weird but it avoids other problems.
-3. If you wanted really nice water, you could do things like:
-a. A screen effect or overlay when are underwater.
-b. Large friction on the z-axis, ability to “fly”, and no ability to jump when underwater.
-c. Water would need to be rendered as a separate translucent pass after the solid ground, with chunks rendered in back to front order.
-
-
-BUILD CONFIGURATIONS
-Create two new Build Configurations in the Visual Studio Build -> Configuration Manager for both your SimpleMiner game project and your Engine project.
-1. DebugInline: clone of Debug, but with these settings changes:
-a. C/C++ -> Optimization -> Inline Function Expansion = Any Suitable
-b. C/C++ -> Optimization -> Enable Intrinsic Functions = Yes
-2. FastBreak: clone of Release, but with these settings changes:
-a. C/C++ -> Optimization -> Optimization = Disabled
-3. You must buddy build and test all build configurations make sure each one builds and runs correctly.
-
-
-
-
-SUBMISSION
-For this assignment submit your work to Perforce and submit depot paths for Engine and SimpleMiner to Canvas.
-Your submission should look like the following.
-//depot/C34/Students/username/SD/Engine/...@999999
-//depot/C34/Students/username/SD/SimpleMiner/...@999999
-SUBMITTING DEPOT PATHS TO CANVAS 
-Submit text containing the depot path(s) and changelist(s) for all folders required to build and run your project. Ensure you are submitting properly formatted depot paths. Include no other text or information. 
-A properly formatted depot path should look like the following.
-//depot/C33/Students/username/SD/Folder/...@999999
-You can, and should, copy depot paths directly from Perforce. You can do that as follows.
-1. Select the Depot tab. This will display all paths as depot paths.
-2. Select your project folder in the depot folder list.
-3. Go to the History pane. You can open it from the View menu if needed.
-4. Select the changelist for the revision you intend to submit for the assignment. Generally, this is the most recent revision.
-5. Go to the Details pane.
-6. Copy the text in the Revision field and paste that into Canvas.
-
-
-
-
-RUBRIC	
-CategoryItemPointsGeneralPlayer and camera10GeneralPhysics modes15GeneralCamera modes15GeneralNewtonian physics20GeneralPlayer controls10GeneralEntity world clipping15GeneralEntity rendering5GeneralBuild configurations10
-CategoryItemPointsDeductionsUnable to get your submission from Perforce and build and run your project, for any reason at all.-100DeductionsAny compile warnings, including those other professors are OK with.-5DeductionsAny temporary, intermediate, or otherwise unnecessary files submitted to Perforce.-5
-
-
-COMMON ERRORS
-There are many ways to get a zero due to me not being able to build and run your project.
-* Submitting an incorrect Perforce depot path.
-o Submitting a workspace path instead of a depot path.
-o Selecting the wrong changelist before copying the depot path.
-o Selecting the wrong folder before copying the depot path.
-o Attempting to type the depot path manually and failing miserably.
-* Failing to build
-o Compile errors.
-o Linker errors.
-o Files missing from Perforce.
-o Executable files are submitted to Perforce but filetype is not set to Always writable in workspace.
-o Not submitting depot paths for all folders required by your project.
-o References to third party tools or SDKs that I do not have.
-If your project does not build you are free to fix the errors and resubmit to get regraded according to the standard late policy. Because I can’t guarantee when projects will be graded, this usually ends up with the maximum late penalty of -50%. 
-Each student gets one reduced penalty on their first resubmission due to failing to build or run. The penalty will be capped at one day, for a maximum of -20%.
-Do buddy builds. They can find almost all the problems above and can save your grade.
-QUALITY
-I reserve the right to deduct points, regardless of rubric point allocations, for problems that are sufficiently noticeable and detrimental and should have been fixed regardless of the assignment or rubric.
-* For example:
-o Bugs or problems that interfere with game play.
-o Bugs or problems that render other parts of the assignment untestable.
-o Rendering artifacts that affect overall visual quality.
-o Control issues that affect playability and the user experience.
-You are expected to always exercise good judgement. If something looks bad or feels bad, fix it.
-
-
-
