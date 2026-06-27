@@ -346,7 +346,7 @@ void HotbarWidget::RenderCrosshair() const
     AddVertsForLineSegment2D(verts, verticalStart, verticalEnd, LINE_THICKNESS, false, crosshairColor);
 
     // Render crosshair with default shader (no texture)
-    g_renderer->BindShader(g_renderer->CreateOrGetShaderFromFile("Data/Shaders/Default"));
+    g_renderer->BindShader(g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/Default"));
     g_renderer->BindTexture(nullptr);
     g_renderer->DrawVertexArray(static_cast<int>(verts.size()), verts.data());
 }

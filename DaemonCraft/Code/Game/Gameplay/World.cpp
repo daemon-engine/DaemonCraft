@@ -25,6 +25,7 @@
 #include "Engine/Renderer/ConstantBuffer.hpp"  // Assignment 5 Phase 8: For ConstantBuffer class
 #include "Engine/Renderer/VertexBuffer.hpp"  // For leak tracking
 #include "Engine/Renderer/IndexBuffer.hpp"   // For leak tracking
+#include "Engine/Resource/ResourceSubsystem.hpp"
 #include "Game/Framework/App.hpp"
 #include "Game/Framework/Block.hpp"  // Assignment 5 Phase 4: For BlockIterator
 #include "Game/Framework/BlockIterator.hpp"  // Assignment 5 Phase 4: For dirty light queue
@@ -72,7 +73,7 @@ struct WorldConstants
 World::World()
 {
     // Assignment 5 Phase 8: Load World shader and create constant buffer
-    m_worldShader = g_renderer->CreateOrGetShaderFromFile("Data/Shaders/World");
+    m_worldShader = g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/World");
     m_worldConstantBuffer = g_renderer->CreateConstantBuffer(sizeof(WorldConstants));
 }
 

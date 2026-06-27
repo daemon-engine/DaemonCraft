@@ -286,7 +286,7 @@ void InventoryWidget::RenderDarkOverlay() const
 	AddVertsForAABB2D(verts, fullScreen, overlayColor);
 
 	// Render overlay with no texture
-	g_renderer->BindShader(g_renderer->CreateOrGetShaderFromFile("Data/Shaders/Default"));
+	g_renderer->BindShader(g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/Default"));
 	g_renderer->BindTexture(nullptr);
 	g_renderer->SetBlendMode(eBlendMode::ALPHA);
 	g_renderer->DrawVertexArray(static_cast<int>(verts.size()), verts.data());

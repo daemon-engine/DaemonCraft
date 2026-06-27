@@ -1179,7 +1179,7 @@ void Player::RenderMiningProgress() const
 
     // Render all faces with crack texture
     // Use Default shader (not World shader) for proper transparency handling
-    g_renderer->BindShader(g_renderer->CreateOrGetShaderFromFile("Data/Shaders/Default"));
+    g_renderer->BindShader(g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/Default"));
     g_renderer->BindTexture(m_crackTexture);
     g_renderer->SetBlendMode(eBlendMode::ALPHA); // Use alpha blending for transparency
     g_renderer->DrawVertexArray(verts, indices); // Use indexed rendering for efficiency

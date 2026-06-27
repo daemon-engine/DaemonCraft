@@ -248,7 +248,7 @@ void Game::Render() const
 
             AddVertsForWireframeQuad3D(wireframeVerts, bottomLeft, bottomRight, topLeft, topRight, wireframeThickness, highlightColor);
 
-            g_renderer->BindShader(g_renderer->CreateOrGetShaderFromFile("Data/Shaders/Default"));
+            g_renderer->BindShader(g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/Default"));
             g_renderer->BindTexture(nullptr); // Disable texture for wireframe
             g_renderer->DrawVertexArray(wireframeVerts);
 
@@ -590,7 +590,7 @@ void Game::RenderAttractMode() const
     g_renderer->SetSamplerMode(eSamplerMode::BILINEAR_CLAMP);
     g_renderer->SetDepthMode(eDepthMode::DISABLED);
     g_renderer->BindTexture(nullptr);
-    g_renderer->BindShader(g_renderer->CreateOrGetShaderFromFile("Data/Shaders/Default"));
+    g_renderer->BindShader(g_resourceSubsystem->CreateOrGetShaderFromFile("Data/Shaders/Default"));
     g_renderer->DrawVertexArray(verts);
 }
 
